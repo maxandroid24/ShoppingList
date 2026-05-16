@@ -5,20 +5,23 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/widget_bg"
-    android:padding="8dp">
+    android:padding="12dp">
 
     <TextView
+        android:id="@+id/tvWidgetTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Shopping List"
+        android:text="My Groups"
         android:textColor="#191C1A"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:paddingBottom="8dp"
+        android:paddingBottom="12dp"
         android:gravity="center"/>
 
     <ListView
         android:id="@+id/widgetListView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="6dp"/>
 </LinearLayout>

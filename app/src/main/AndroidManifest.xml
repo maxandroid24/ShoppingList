@@ -33,6 +33,8 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.example.shoppinglist.ACTION_SHOW_PRODUCTS" />
+                <action android:name="com.example.shoppinglist.ACTION_SHOW_GROUPS" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

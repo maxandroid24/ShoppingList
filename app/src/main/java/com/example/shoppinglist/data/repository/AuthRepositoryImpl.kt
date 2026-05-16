@@ -2,6 +2,7 @@ package com.example.shoppinglist.data.repository
 
 import android.content.Context
 import android.util.Log
+import com.example.shoppinglist.domain.models.ShoppingGroup
 import com.example.shoppinglist.domain.models.User
 import com.example.shoppinglist.domain.repositories.AuthRepository
 import com.example.shoppinglist.domain.utils.Resource
@@ -33,11 +34,9 @@ class AuthRepositoryImpl @Inject constructor(
             val firebaseUser = firebaseAuth.currentUser
             Log.d(TAG, "AuthState changed: ${firebaseUser?.uid}")
             
-            // Clean up old listener if any
             userDocListener?.remove()
             
             if (firebaseUser != null) {
-                // Listen to the Firestore user document for real-time group updates
                 userDocListener = firestore.collection("users").document(firebaseUser.uid)
                     .addSnapshotListener { snapshot, error ->
                         if (error != null) {
@@ -48,10 +47,13 @@ class AuthRepositoryImpl @Inject constructor(
                         if (snapshot != null && snapshot.exists()) {
                             val groupIds = (snapshot.get("groupIds") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
                             val displayName = snapshot.getString("displayName") ?: "User_${firebaseUser.uid.takeLast(4)}"
+                            
+                            // Cache groupIds for widget access
+                            prefs.edit().putString("cached_groupIds", org.json.JSONArray(groupIds).toString()).apply()
+                            
                             Log.d(TAG, "User updated in Firestore. Groups: $groupIds")
                             trySend(User(firebaseUser.uid, firebaseUser.email ?: "", displayName, groupIds))
                         } else {
-                            // Document might not exist yet if just created
                             trySend(User(firebaseUser.uid, firebaseUser.email ?: "", null, emptyList()))
                         }
                     }
@@ -69,7 +71,16 @@ class AuthRepositoryImpl @Inject constructor(
 
     override fun getCurrentUserSync(): User? {
         val fbUser = auth.currentUser ?: return null
-        return User(fbUser.uid, fbUser.email ?: "", fbUser.displayName, emptyList())
+        val groupsJson = prefs.getString("cached_groupIds", "[]") ?: "[]"
+        val groupIds = mutableListOf<String>()
+        try {
+            val array = org.json.JSONArray(groupsJson)
+            for (i in 0 until array.length()) {
+                groupIds.add(array.getString(i))
+            }
+        } catch (e: Exception) {}
+        
+        return User(fbUser.uid, fbUser.email ?: "", fbUser.displayName, groupIds)
     }
 
     override suspend fun signInAnonymously(): Resource<User> {
@@ -143,6 +154,20 @@ class AuthRepositoryImpl @Inject constructor(
         prefs.edit().putString("activeGroupId", groupId).apply()
         WidgetUpdateHelper.updateWidgets(context)
         return Resource.Success(Unit)
+    }
+
+    override fun cacheGroups(groups: List<ShoppingGroup>) {
+        val json = org.json.JSONArray()
+        groups.forEach { group ->
+            json.put(org.json.JSONObject().apply {
+                put("id", group.id)
+                put("name", group.name)
+                put("memberCount", group.memberIds.size)
+            })
+        }
+        context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+            .edit().putString("cached_groups_data", json.toString()).apply()
+        WidgetUpdateHelper.updateWidgets(context)
     }
 
     override suspend fun updateDisplayName(name: String): Resource<Unit> {

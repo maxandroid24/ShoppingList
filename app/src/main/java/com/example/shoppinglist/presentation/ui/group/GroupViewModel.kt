@@ -28,7 +28,11 @@ class GroupViewModel @Inject constructor(
     fun loadUserGroups(groupIds: List<String>) {
         viewModelScope.launch {
             _userGroups.value = Resource.Loading
-            _userGroups.value = groupRepository.getGroupsByIds(groupIds)
+            val resource = groupRepository.getGroupsByIds(groupIds)
+            if (resource is Resource.Success) {
+                authRepository.cacheGroups(resource.data)
+            }
+            _userGroups.value = resource
         }
     }
 

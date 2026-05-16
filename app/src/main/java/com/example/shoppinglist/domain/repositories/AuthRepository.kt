@@ -1,5 +1,6 @@
 package com.example.shoppinglist.domain.repositories
 
+import com.example.shoppinglist.domain.models.ShoppingGroup
 import com.example.shoppinglist.domain.models.User
 import com.example.shoppinglist.domain.utils.Resource
 import kotlinx.coroutines.flow.Flow
@@ -13,4 +14,5 @@ interface AuthRepository {
     suspend fun removeGroupFromUser(groupId: String): Resource<Unit>
     suspend fun setActiveGroupId(groupId: String): Resource<Unit>
     suspend fun updateDisplayName(name: String): Resource<Unit>
+    fun cacheGroups(groups: List<ShoppingGroup>)
 }

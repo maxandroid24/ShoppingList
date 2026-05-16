@@ -8,9 +8,10 @@
     android:padding="8dp">
 
     <TextView
+        android:id="@+id/tvWidgetTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Shopping List"
+        android:text="My Groups"
         android:textColor="#191C1A"
         android:textSize="16sp"
         android:textStyle="bold"
@@ -20,5 +21,7 @@
     <ListView
         android:id="@+id/widgetListView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="4dp"/>
 </LinearLayout>

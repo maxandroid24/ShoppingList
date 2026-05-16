@@ -1,6 +1,7 @@
 package com.example.shoppinglist.data.repository
 
 import android.content.Context
+import com.example.shoppinglist.domain.models.ShoppingGroup
 import com.example.shoppinglist.domain.models.User
 import com.example.shoppinglist.domain.repositories.AuthRepository
 import com.example.shoppinglist.domain.utils.Resource
@@ -97,6 +98,20 @@ class MockAuthRepositoryImpl @Inject constructor(
         prefs.edit().putString("activeGroupId", groupId).commit() // Use commit to ensure visibility for widget
         WidgetUpdateHelper.updateWidgets(context)
         return Resource.Success(Unit)
+    }
+
+    override fun cacheGroups(groups: List<ShoppingGroup>) {
+        val json = org.json.JSONArray()
+        groups.forEach { group ->
+            json.put(org.json.JSONObject().apply {
+                put("id", group.id)
+                put("name", group.name)
+                put("memberCount", group.memberIds.size)
+            })
+        }
+        context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+            .edit().putString("cached_groups_data", json.toString()).apply()
+        WidgetUpdateHelper.updateWidgets(context)
     }
 
     override suspend fun updateDisplayName(name: String): Resource<Unit> {
